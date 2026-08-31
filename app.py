@@ -144,6 +144,64 @@ def get_upload_stats(upload_dir):
     return stats
 
 
+def seed_initial_data():
+    """Seed realistic initial company records if the database is empty."""
+    if Record.query.count() == 0:
+        sample_records = [
+            Record(
+                name="Production PostgreSQL Database Dump",
+                category="Database",
+                description="Full nightly dump of production customer transactional database.",
+                status="Active",
+                value=12500.00
+            ),
+            Record(
+                name="Nginx Web Server Configuration",
+                category="Configuration",
+                description="Nginx reverse proxy, load balancer, and SSL certificate config files.",
+                status="Active",
+                value=1500.00
+            ),
+            Record(
+                name="AWS IAM Service Account Credentials",
+                category="Credentials",
+                description="Encrypted API keys and service tokens for cloud backup storage.",
+                status="Active",
+                value=5000.00
+            ),
+            Record(
+                name="Employee Payroll & Tax Data Q2",
+                category="General",
+                description="Encrypted CSV export of quarterly payroll records.",
+                status="Active",
+                value=8500.00
+            ),
+            Record(
+                name="Legacy Linux File Server Snapshot",
+                category="Server",
+                description="Disk snapshot of deprecated Ubuntu 20.04 internal file server.",
+                status="Pending",
+                value=3200.00
+            ),
+            Record(
+                name="Wildcard SSL / TLS Certificate Bundle",
+                category="Credentials",
+                description="Wildcard SSL certificates and private keys for internal domain.",
+                status="Active",
+                value=2400.00
+            ),
+            Record(
+                name="System Security Audit Logs Q2",
+                category="General",
+                description="Compliance audit trail log export for security review.",
+                status="Archived",
+                value=750.00
+            )
+        ]
+        db.session.bulk_save_objects(sample_records)
+        db.session.commit()
+
+
 def create_app(config_class=Config):
     """Flask Application Factory."""
     app = Flask(__name__)
@@ -165,6 +223,9 @@ def create_app(config_class=Config):
     # Create tables automatically inside app context
     with app.app_context():
         db.create_all()
+        # Seed realistic initial data if database is empty (except in testing mode)
+        if not app.config.get('TESTING'):
+            seed_initial_data()
 
     # -------------------------------------------------------------------------
     # Routes
