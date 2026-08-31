@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Backup Management System{% endblock %}</title>
+    <!-- Google Fonts & System Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Header & Navigation Bar -->
+    <header class="app-header">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard') }}" class="brand-logo">
+                <span class="logo-icon">💾</span>
+                <span class="logo-text">BackupFlow <small class="version-tag">v1.0</small></span>
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('list_records') }}" class="nav-item {% if request.endpoint in ['list_records', 'edit_record'] %}active{% endif %}">
+                    <span class="icon">📁</span> Data Records
+                </a>
+                <a href="{{ url_for('manage_uploads') }}" class="nav-item {% if request.endpoint == 'manage_uploads' %}active{% endif %}">
+                    <span class="icon">📤</span> File Uploads
+                </a>
+                <a href="{{ url_for('view_backups') }}" class="nav-item {% if request.endpoint == 'view_backups' %}active{% endif %}">
+                    <span class="icon">🛡️</span> Backups
+                </a>
+            </nav>
+            <div class="header-actions">
+                <a href="{{ url_for('health_check') }}" target="_blank" class="health-pill" title="Check API Health Status">
+                    <span class="pulse-dot"></span> Health Check
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages Container -->
+    <div class="flash-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span class="alert-text">{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p><strong>Backup Management System</strong> &bull; Prepared for Jenkins Automation & CI/CD Project</p>
+            <p class="sub-text">Direct Linux Execution &bull; SQLite Database &bull; Flask Application</p>
+        </div>
+    </footer>
+
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

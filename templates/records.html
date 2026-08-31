@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Data Records - Backup Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Data Records Management</h1>
+        <p class="subtitle">Create, view, update, and manage critical application data records.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" onclick="toggleAddForm()">+ Add New Record</button>
+    </div>
+</div>
+
+<!-- Add Record Form (Hidden by default or toggleable) -->
+<div id="addRecordCard" class="card form-card" style="display: none;">
+    <div class="card-title-flex">
+        <h3>Create New Data Record</h3>
+        <button type="button" class="close-btn" onclick="toggleAddForm()">&times;</button>
+    </div>
+    <form action="{{ url_for('add_record') }}" method="POST" class="grid-form">
+        <div class="form-group">
+            <label for="name">Record Name *</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Primary Server Config" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" class="form-control">
+                <option value="Server">Server Asset</option>
+                <option value="Database">Database Dump</option>
+                <option value="Configuration">Configuration File</option>
+                <option value="Credentials">Secure Credential</option>
+                <option value="General" selected>General Data</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" name="status" class="form-control">
+                <option value="Active" selected>Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Archived">Archived</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="value">Estimated Value ($)</label>
+            <input type="number" step="0.01" id="value" name="value" placeholder="0.00" class="form-control">
+        </div>
+        <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="Enter details about this record..." class="form-control"></textarea>
+        </div>
+        <div class="form-actions full-width">
+            <button type="submit" class="btn btn-success">Save Record</button>
+            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="filter-bar">
+    <form action="{{ url_for('list_records') }}" method="GET" class="filter-form">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search records by name or description..." class="form-control search-input">
+        <select name="category" class="form-control filter-select" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        {% if search_query or selected_category %}
+            <a href="{{ url_for('list_records') }}" class="btn btn-outline">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="card">
+    {% if records %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Value</th>
+                        <th>Created At</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>#{{ record.id }}</td>
+                        <td><strong>{{ record.name }}</strong></td>
+                        <td><span class="tag">{{ record.category }}</span></td>
+                        <td>{{ record.description or '—' }}</td>
+                        <td>
+                            <span class="badge {% if record.status == 'Active' %}emerald-badge{% elif record.status == 'Pending' %}warning-badge{% else %}gray-badge{% endif %}">
+                                {{ record.status }}
+                            </span>
+                        </td>
+                        <td>${{ "%.2f"|format(record.value) }}</td>
+                        <td>{{ record.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="text-right">
+                            <div class="action-buttons">
+                                <a href="{{ url_for('edit_record', record_id=record.id) }}" class="btn btn-xs btn-outline">Edit</a>
+                                <form action="{{ url_for('delete_record', record_id=record.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete record #{{ record.id }}?');">
+                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📂</span>
+            <h3>No Records Found</h3>
+            <p>Get started by creating your first data record.</p>
+            <button class="btn btn-primary" onclick="toggleAddForm()">+ Add Record Now</button>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

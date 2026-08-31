@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}File Upload Manager - Backup Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>File Upload Manager</h1>
+        <p class="subtitle">Upload sample files into the <code>uploads/</code> directory for storage and backup testing.</p>
+    </div>
+</div>
+
+<!-- Upload Box -->
+<div class="card upload-box-card">
+    <h3>Upload Sample File</h3>
+    <form action="{{ url_for('manage_uploads') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+        <div class="file-drop-zone" id="dropZone">
+            <span class="upload-icon">☁️</span>
+            <p>Drag and drop file here, or click to browse</p>
+            <input type="file" name="file" id="fileInput" required onchange="updateFileName(this)">
+            <div id="fileSelectedName" class="selected-file-name"></div>
+        </div>
+        <div class="upload-action-row">
+            <button type="submit" class="btn btn-primary">Start Upload</button>
+        </div>
+    </form>
+</div>
+
+<!-- Uploaded Files Table -->
+<div class="card">
+    <div class="card-header-flex">
+        <h3>Uploaded Files List</h3>
+        <span class="badge blue-badge">{{ upload_stats.count }} Files ({{ upload_stats.formatted_size }})</span>
+    </div>
+
+    {% if upload_stats.files %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Size</th>
+                        <th>Uploaded / Modified</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in upload_stats.files %}
+                    <tr>
+                        <td>
+                            <span class="file-icon">📄</span>
+                            <strong>{{ f.filename }}</strong>
+                        </td>
+                        <td>{{ f.formatted_size }}</td>
+                        <td>{{ f.modified_str }}</td>
+                        <td class="text-right">
+                            <div class="action-buttons">
+                                <a href="{{ url_for('download_file', filename=f.filename) }}" class="btn btn-xs btn-primary">Download</a>
+                                <form action="{{ url_for('delete_file', filename=f.filename) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete file {{ f.filename }}?');">
+                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">📁</span>
+            <h3>No Uploaded Files</h3>
+            <p>The <code>uploads/</code> folder is currently empty. Upload files above to test backup retention.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

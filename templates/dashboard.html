@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Backup Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>System Overview</h1>
+        <p class="subtitle">Monitor application stats, uploaded assets, and backup status.</p>
+    </div>
+    <div class="action-bar">
+        <a href="{{ url_for('list_records') }}" class="btn btn-primary">+ New Record</a>
+        <a href="{{ url_for('manage_uploads') }}" class="btn btn-secondary">Upload File</a>
+    </div>
+</div>
+
+<!-- Key Metrics Grid -->
+<div class="metrics-grid">
+    <!-- Card 1: Records -->
+    <div class="metric-card">
+        <div class="card-header-flex">
+            <span class="card-icon blue">📊</span>
+            <span class="badge blue-badge">Database</span>
+        </div>
+        <div class="metric-value">{{ record_count }}</div>
+        <div class="metric-title">Total Database Records</div>
+        <div class="metric-footer">
+            Total Asset Value: <strong>${{ "%.2f"|format(total_value) }}</strong>
+        </div>
+    </div>
+
+    <!-- Card 2: Uploads -->
+    <div class="metric-card">
+        <div class="card-header-flex">
+            <span class="card-icon green">📁</span>
+            <span class="badge green-badge">Uploads</span>
+        </div>
+        <div class="metric-value">{{ upload_stats.count }}</div>
+        <div class="metric-title">Total Uploaded Files</div>
+        <div class="metric-footer">
+            Total Storage: <strong>{{ upload_stats.formatted_size }}</strong>
+        </div>
+    </div>
+
+    <!-- Card 3: Backup Info -->
+    <div class="metric-card">
+        <div class="card-header-flex">
+            <span class="card-icon purple">🛡️</span>
+            <span class="badge {% if backup_stats.status == 'Healthy' %}purple-badge{% else %}warning-badge{% endif %}">
+                {{ backup_stats.status }}
+            </span>
+        </div>
+        <div class="metric-value">{{ backup_stats.count }}</div>
+        <div class="metric-title">Available Backup Files</div>
+        <div class="metric-footer">
+            {% if backup_stats.latest_backup_time %}
+                Latest: <strong>{{ backup_stats.latest_backup_time }}</strong>
+            {% else %}
+                <span>No backups detected yet</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Card 4: System Health -->
+    <div class="metric-card">
+        <div class="card-header-flex">
+            <span class="card-icon emerald">⚡</span>
+            <span class="badge emerald-badge">Operational</span>
+        </div>
+        <div class="metric-value">100%</div>
+        <div class="metric-title">Application Health</div>
+        <div class="metric-footer">
+            Database Connection: <strong class="text-success">Connected</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Detail Sections -->
+<div class="dashboard-sections">
+    <!-- Recent Activity / Records Table -->
+    <div class="card section-card">
+        <div class="section-header">
+            <h3>Recent Data Records</h3>
+            <a href="{{ url_for('list_records') }}" class="link-btn">View All &rarr;</a>
+        </div>
+        {% if recent_records %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Value</th>
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in recent_records %}
+                        <tr>
+                            <td>#{{ record.id }}</td>
+                            <td><strong>{{ record.name }}</strong></td>
+                            <td><span class="tag">{{ record.category }}</span></td>
+                            <td>
+                                <span class="status-dot {% if record.status == 'Active' %}active{% else %}inactive{% endif %}"></span>
+                                {{ record.status }}
+                            </td>
+                            <td>${{ "%.2f"|format(record.value) }}</td>
+                            <td>{{ record.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No records found in database.</p>
+                <a href="{{ url_for('list_records') }}" class="btn btn-sm btn-primary">Add First Record</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- System & Backup Info Card -->
+    <div class="card section-card">
+        <div class="section-header">
+            <h3>DevOps Backup System Status</h3>
+        </div>
+        <div class="info-list">
+            <div class="info-item">
+                <span class="info-label">Database Path:</span>
+                <code class="info-val">database/app.db</code>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Upload Storage:</span>
+                <code class="info-val">uploads/</code>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Backup Directory:</span>
+                <code class="info-val">backups/</code>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Health API:</span>
+                <a href="{{ url_for('health_check') }}" target="_blank" class="info-val">/health</a>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Jenkins Backup Target:</span>
+                <span class="info-val text-muted">Ready for automated backups</span>
+            </div>
+        </div>
+
+        <div class="banner-box">
+            <h4>💡 Jenkins Integration Tip</h4>
+            <p>Jenkins pipelines can query <code>/health</code> to verify app status before & after backing up <code>database/app.db</code> and <code>uploads/</code>.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

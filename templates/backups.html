@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Information - Backup Management System{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Backup Information Center</h1>
+        <p class="subtitle">Inspect backup files, verification status, and storage metrics in <code>backups/</code>.</p>
+    </div>
+</div>
+
+<!-- Backup Overview Cards -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-title">Backup System Status</div>
+        <div class="metric-value">
+            <span class="badge {% if backup_stats.status == 'Healthy' %}emerald-badge{% else %}warning-badge{% endif %}" style="font-size: 1rem; padding: 6px 12px;">
+                {{ backup_stats.status }}
+            </span>
+        </div>
+        <div class="metric-footer">Status checked live</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title">Available Backup Archives</div>
+        <div class="metric-value">{{ backup_stats.count }}</div>
+        <div class="metric-footer">Total backup archives detected</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title">Total Backup Size</div>
+        <div class="metric-value">{{ backup_stats.formatted_size }}</div>
+        <div class="metric-footer">Combined archive storage</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-title">Latest Backup Timestamp</div>
+        <div class="metric-value" style="font-size: 1.1rem; line-height: 2rem;">
+            {% if backup_stats.latest_backup_time %}
+                {{ backup_stats.latest_backup_time }}
+            {% else %}
+                N/A
+            {% endif %}
+        </div>
+        <div class="metric-footer">Most recent creation time</div>
+    </div>
+</div>
+
+<!-- Existing Backups List -->
+<div class="card">
+    <div class="card-header-flex">
+        <h3>Detected Backup Archives</h3>
+        <span class="badge purple-badge">{{ backup_stats.count }} Archives</span>
+    </div>
+
+    {% if backup_stats.backup_files %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Archive Filename</th>
+                        <th>File Size</th>
+                        <th>Created / Modified Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in backup_stats.backup_files %}
+                    <tr>
+                        <td>
+                            <span class="file-icon">📦</span>
+                            <strong>{{ b.filename }}</strong>
+                        </td>
+                        <td>{{ b.formatted_size }}</td>
+                        <td>{{ b.modified_str }}</td>
+                        <td><span class="badge emerald-badge">Valid Archive</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="empty-icon">🛡️</span>
+            <h3>No Backup Archives Found</h3>
+            <p>No backup archive files (e.g. <code>.tar.gz</code>) detected in the <code>backups/</code> folder.</p>
+            <p class="sub-text">Jenkins pipelines or manual bash scripts will write timestamped archives into this folder during scheduled backups.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Architecture & Pipeline Information Card -->
+<div class="card section-card">
+    <h3>Jenkins Automation Workflow Overview</h3>
+    <p>This web application is configured for external Jenkins automation. The workflow includes:</p>
+    
+    <div class="workflow-steps">
+        <div class="step-item">
+            <span class="step-num">1</span>
+            <div><strong>Health Verification:</strong> Jenkins queries <code>/health</code> API endpoint to verify app status.</div>
+        </div>
+        <div class="step-item">
+            <span class="step-num">2</span>
+            <div><strong>Data Backup:</strong> Jenkins shell script compresses <code>database/app.db</code> and <code>uploads/</code> into <code>backups/backup_YYYYMMDD_HHMMSS.tar.gz</code>.</div>
+        </div>
+        <div class="step-item">
+            <span class="step-num">3</span>
+            <div><strong>Integrity Check:</strong> Verification script tests archive integrity using <code>tar -tzf</code>.</div>
+        </div>
+        <div class="step-item">
+            <span class="step-num">4</span>
+            <div><strong>Retention Policy:</strong> Script keeps only the latest N backups, removing older archives.</div>
+        </div>
+        <div class="step-item">
+            <span class="step-num">5</span>
+            <div><strong>Recovery Verification:</strong> Test restores backup to a temporary folder and validates SQLite integrity.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

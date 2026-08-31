@@ -1,0 +1,40 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database files (Important application data - backed up by Jenkins)
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+!database/.gitkeep
+
+# Uploaded files (Important application data - backed up by Jenkins)
+uploads/*
+!uploads/.gitkeep
+
+# Backups folder (Where generated backups reside)
+backups/*
+!backups/.gitkeep
+
+# Environment variables & secrets
+.env
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# IDE settings
+.idea/
+.vscode/
