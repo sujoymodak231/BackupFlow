@@ -35,6 +35,15 @@ pip install --quiet -r requirements.txt
 # Create required data directories
 mkdir -p database uploads backups
 
-# Run application
-echo "[INFO] Application starting on http://0.0.0.0:5000..."
-python3 app.py
+# Stop existing running instance if any
+if [ -f "scripts/stop.sh" ]; then
+    bash scripts/stop.sh > /dev/null 2>&1 || true
+fi
+
+# Run application in background for Jenkins compatibility
+echo "[INFO] Application starting on http://0.0.0.0:5000 in background..."
+nohup python3 app.py > app.log 2>&1 &
+APP_PID=$!
+echo $APP_PID > app.pid
+
+echo "[SUCCESS] Application started with PID: $APP_PID (Logs: app.log)"
